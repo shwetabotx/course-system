@@ -1,5 +1,8 @@
 const Student = require("../models/Student");
 
+
+// Create Student
+
 const createStudent = async (req, res) => {
 
     try {
@@ -28,7 +31,7 @@ const createStudent = async (req, res) => {
 
     } catch (error) {
 
-        //Duplicate email validation
+        // Duplicate email
         if (error.code === 11000) {
 
             return res.status(400).json({
@@ -61,6 +64,9 @@ const createStudent = async (req, res) => {
 
 };
 
+
+// Get All Students
+
 const getStudents = async (req, res) => {
 
     try {
@@ -86,6 +92,8 @@ const getStudents = async (req, res) => {
 
 };
 
+
 module.exports = {
-    createStudent
+    createStudent,
+    getStudents
 };
