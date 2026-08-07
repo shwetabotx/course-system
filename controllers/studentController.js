@@ -128,9 +128,81 @@ const getStudentById = async (req, res) => {
 
 };
 
+// Update Student
+
+const updateStudent = async (req, res) => {
+
+    try {
+
+        const { name, phone, course, status } = req.body;
+
+        const student = await Student.findById(req.params.id);
+
+        if (!student) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Student not found"
+            });
+
+        }
+
+        // Update only editable fields
+
+        if (name !== undefined) {
+            student.name = name;
+        }
+
+        if (phone !== undefined) {
+            student.phone = phone;
+        }
+
+        if (course !== undefined) {
+            student.course = course;
+        }
+
+        if (status !== undefined) {
+            student.status = status;
+        }
+
+        const updatedStudent = await student.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Student updated successfully",
+            data: updatedStudent
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        if (error.name === "ValidationError") {
+
+            const message = Object.values(error.errors)
+                .map((err) => err.message)
+                .join(", ");
+
+            return res.status(400).json({
+                success: false,
+                message: message
+            });
+
+        }
+
+        res.status(400).json({
+            success: false,
+            message: "Invalid student ID"
+        });
+
+    }
+
+};
 
 module.exports = {
     createStudent,
     getStudents,
-    getStudentById
+    getStudentById,
+    updateStudent
+
 };
