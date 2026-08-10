@@ -391,13 +391,8 @@ function AddStudent() {
                                 className="btn btn-primary"
                                 disabled={loading}
                             >
-
-                                {loading
-                                    ? "Adding..."
-                                    : "Add Student"}
-
+                                {loading ? "Adding..." : "Add Student"}
                             </button>
-
 
                             <button
                                 type="button"
@@ -405,7 +400,7 @@ function AddStudent() {
                                 onClick={() => navigate("/")}
                                 disabled={loading}
                             >
-                                Cancel
+                                Back
                             </button>
 
                         </div>

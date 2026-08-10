@@ -501,13 +501,8 @@ function EditStudent() {
                                 className="btn btn-primary"
                                 disabled={saving}
                             >
-
-                                {saving
-                                    ? "Updating..."
-                                    : "Update Student"}
-
+                                {saving ? "Updating..." : "Update Student"}
                             </button>
-
 
                             <button
                                 type="button"
@@ -515,7 +510,7 @@ function EditStudent() {
                                 onClick={() => navigate("/")}
                                 disabled={saving}
                             >
-                                Cancel
+                                Back
                             </button>
 
                         </div>

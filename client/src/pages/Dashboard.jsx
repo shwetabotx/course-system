@@ -28,6 +28,10 @@ function Dashboard() {
         dropped: 0
     });
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
     // Load students
     const loadStudents = async () => {
 
@@ -86,19 +90,26 @@ function Dashboard() {
 
 
     // Delete student
-    const handleDelete = async (id) => {
 
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this student?"
-        );
+    const handleDeleteClick = (student) => {
+        setSelectedStudent(student);
+        setShowDeleteModal(true);
+    };
 
-        if (!confirmed) {
+    const handleDeleteConfirm = async () => {
+
+        if (!selectedStudent) {
             return;
         }
 
         try {
 
-            await deleteStudent(id);
+            setDeleting(true);
+
+            await deleteStudent(selectedStudent._id);
+
+            setShowDeleteModal(false);
+            setSelectedStudent(null);
 
             loadStudents();
 
@@ -110,6 +121,10 @@ function Dashboard() {
                 error.response?.data?.message ||
                 "Failed to delete student."
             );
+
+        } finally {
+
+            setDeleting(false);
 
         }
     };
@@ -531,13 +546,12 @@ function Dashboard() {
                                                 <td>
 
                                                     <span
-                                                        className={`badge ${
-                                                            student.status === "Active"
-                                                                ? "text-bg-success"
-                                                                : student.status === "Completed"
+                                                        className={`badge ${student.status === "Active"
+                                                            ? "text-bg-success"
+                                                            : student.status === "Completed"
                                                                 ? "text-bg-primary"
                                                                 : "text-bg-danger"
-                                                        }`}
+                                                            }`}
                                                     >
 
                                                         {student.status}
@@ -558,15 +572,12 @@ function Dashboard() {
                                                         </Link>
 
                                                         <button
-                                                            className="btn btn-sm btn-outline-danger"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    student._id
-                                                                )
-                                                            }
+                                                            className="btn btn-danger btn-sm"
+                                                            onClick={() => handleDeleteClick(student)}
                                                         >
                                                             Delete
                                                         </button>
+
 
                                                     </div>
 
@@ -626,6 +637,98 @@ function Dashboard() {
                 </div>
 
             </div>
+            {showDeleteModal && (
+
+    <div
+        className="modal fade show d-block"
+        tabIndex="-1"
+        role="dialog"
+        style={{
+            backgroundColor: "rgba(0, 0, 0, 0.5)"
+        }}
+    >
+
+        <div className="modal-dialog modal-dialog-centered">
+
+            <div className="modal-content">
+
+                <div className="modal-header">
+
+                    <h5 className="modal-title">
+                        Confirm Delete
+                    </h5>
+
+                    <button
+                        type="button"
+                        className="btn-close"
+                        onClick={() => {
+                            setShowDeleteModal(false);
+                            setSelectedStudent(null);
+                        }}
+                        disabled={deleting}
+                    >
+                    </button>
+
+                </div>
+
+
+                <div className="modal-body">
+
+                    <p className="mb-2">
+                        Are you sure you want to delete this student?
+                    </p>
+
+                    {selectedStudent && (
+
+                        <strong>
+                            {selectedStudent.name}
+                        </strong>
+
+                    )}
+
+                    <p className="text-muted mt-2 mb-0">
+                        This action cannot be undone.
+                    </p>
+
+                </div>
+
+
+                <div className="modal-footer">
+
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => {
+                            setShowDeleteModal(false);
+                            setSelectedStudent(null);
+                        }}
+                        disabled={deleting}
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={handleDeleteConfirm}
+                        disabled={deleting}
+                    >
+
+                        {deleting
+                            ? "Deleting..."
+                            : "Delete Student"}
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+)}
 
         </div>
 
