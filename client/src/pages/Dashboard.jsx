@@ -8,31 +8,25 @@ import {
 
 function Dashboard() {
 
-    // Students
     const [students, setStudents] = useState([]);
 
-    // Search and filters
     const [search, setSearch] = useState("");
     const [course, setCourse] = useState("");
     const [status, setStatus] = useState("");
     const [sort, setSort] = useState("");
 
-    // Loading and error
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Pagination
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
-    // Dashboard statistics
     const [stats, setStats] = useState({
         total: 0,
         active: 0,
         completed: 0,
         dropped: 0
     });
-
 
     // Load students
     const loadStudents = async () => {
@@ -43,35 +37,23 @@ function Dashboard() {
             setError("");
 
             const response = await getStudents({
-
-                search: search,
-                course: course,
-                status: status,
-
-                page: page,
+                search,
+                course,
+                status,
+                page,
                 limit: 5,
-
-                sort: sort
-
+                sort
             });
 
-            // Students for current page
             setStudents(response.data.data);
 
-            // Overall dashboard statistics
-            setStats(
-                response.data.stats || {
-                    total: 0,
-                    active: 0,
-                    completed: 0,
-                    dropped: 0
-                }
+            setTotalPages(
+                response.data.pagination.totalPages
             );
 
-            // Pagination
-            setTotalPages(
-                response.data.pagination?.totalPages || 1
-            );
+            if (response.data.stats) {
+                setStats(response.data.stats);
+            }
 
         } catch (error) {
 
@@ -87,23 +69,17 @@ function Dashboard() {
             setLoading(false);
 
         }
-
     };
 
-
-    // Search, filters, sorting and pagination
+    // Search, filter, sorting and pagination
     useEffect(() => {
 
         const timer = setTimeout(() => {
-
             loadStudents();
-
         }, 500);
 
         return () => {
-
             clearTimeout(timer);
-
         };
 
     }, [search, course, status, sort, page]);
@@ -117,26 +93,14 @@ function Dashboard() {
         );
 
         if (!confirmed) {
-
             return;
-
         }
 
         try {
 
             await deleteStudent(id);
 
-            // If deleting the last student on a page,
-            // move back to the previous page.
-            if (students.length === 1 && page > 1) {
-
-                setPage(page - 1);
-
-            } else {
-
-                loadStudents();
-
-            }
+            loadStudents();
 
         } catch (error) {
 
@@ -148,71 +112,123 @@ function Dashboard() {
             );
 
         }
-
     };
 
 
     return (
 
-        <div className="container">
+        <div className="container py-4">
 
-            <h1>
-                Student Course Enrollment System
-            </h1>
+            {/* Header */}
+
+            <div className="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+
+                    <h1 className="fw-bold mb-1">
+                        Student Course Enrollment
+                    </h1>
+
+                    <p className="text-muted mb-0">
+                        Manage students and their enrolled courses
+                    </p>
+
+                </div>
+
+                <Link
+                    to="/add-student"
+                    className="btn btn-primary"
+                >
+                    + Add Student
+                </Link>
+
+            </div>
 
 
             {/* Dashboard Cards */}
 
-            <div className="dashboard-cards">
+            <div className="row g-3 mb-4">
 
-                <div className="card">
+                <div className="col-md-6 col-lg-3">
 
-                    <h3>
-                        Total Students
-                    </h3>
+                    <div className="card shadow-sm border-0 h-100">
 
-                    <p>
-                        {stats.total}
-                    </p>
+                        <div className="card-body">
 
-                </div>
+                            <p className="text-muted mb-2">
+                                Total Students
+                            </p>
 
+                            <h2 className="fw-bold">
+                                {stats.total}
+                            </h2>
 
-                <div className="card">
+                        </div>
 
-                    <h3>
-                        Active Students
-                    </h3>
-
-                    <p>
-                        {stats.active}
-                    </p>
+                    </div>
 
                 </div>
 
 
-                <div className="card">
+                <div className="col-md-6 col-lg-3">
 
-                    <h3>
-                        Completed
-                    </h3>
+                    <div className="card shadow-sm border-0 h-100">
 
-                    <p>
-                        {stats.completed}
-                    </p>
+                        <div className="card-body">
+
+                            <p className="text-muted mb-2">
+                                Active Students
+                            </p>
+
+                            <h2 className="fw-bold">
+                                {stats.active}
+                            </h2>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
 
-                <div className="card">
+                <div className="col-md-6 col-lg-3">
 
-                    <h3>
-                        Dropped
-                    </h3>
+                    <div className="card shadow-sm border-0 h-100">
 
-                    <p>
-                        {stats.dropped}
-                    </p>
+                        <div className="card-body">
+
+                            <p className="text-muted mb-2">
+                                Completed
+                            </p>
+
+                            <h2 className="fw-bold">
+                                {stats.completed}
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div className="col-md-6 col-lg-3">
+
+                    <div className="card shadow-sm border-0 h-100">
+
+                        <div className="card-body">
+
+                            <p className="text-muted mb-2">
+                                Dropped
+                            </p>
+
+                            <h2 className="fw-bold">
+                                {stats.dropped}
+                            </h2>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -221,132 +237,160 @@ function Dashboard() {
 
             {/* Search and Filters */}
 
-            <div className="student-section">
+            <div className="card shadow-sm border-0 mb-4">
 
-                <h2>
-                    Search & Filter
-                </h2>
+                <div className="card-body">
 
-                <div className="filters">
+                    <h5 className="fw-bold mb-3">
+                        Search & Filter
+                    </h5>
 
-                    {/* Search */}
+                    <div className="row g-3">
 
-                    <input
-                        type="text"
-                        placeholder="Search by name or email"
-                        value={search}
-                        onChange={(event) => {
+                        {/* Search */}
 
-                            setSearch(
-                                event.target.value
-                            );
+                        <div className="col-md-6">
 
-                            setPage(1);
+                            <label className="form-label">
+                                Search
+                            </label>
 
-                        }}
-                    />
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search by name or email"
+                                value={search}
+                                onChange={(event) => {
 
+                                    setSearch(event.target.value);
+                                    setPage(1);
 
-                    {/* Course */}
+                                }}
+                            />
 
-                    <select
-                        value={course}
-                        onChange={(event) => {
-
-                            setCourse(
-                                event.target.value
-                            );
-
-                            setPage(1);
-
-                        }}
-                    >
-
-                        <option value="">
-                            All Courses
-                        </option>
-
-                        <option value="React">
-                            React
-                        </option>
-
-                        <option value="Node">
-                            Node
-                        </option>
-
-                        <option value="Java">
-                            Java
-                        </option>
-
-                        <option value="Python">
-                            Python
-                        </option>
-
-                    </select>
+                        </div>
 
 
-                    {/* Status */}
+                        {/* Course */}
 
-                    <select
-                        value={status}
-                        onChange={(event) => {
+                        <div className="col-md-3">
 
-                            setStatus(
-                                event.target.value
-                            );
+                            <label className="form-label">
+                                Course
+                            </label>
 
-                            setPage(1);
+                            <select
+                                className="form-select"
+                                value={course}
+                                onChange={(event) => {
 
-                        }}
-                    >
+                                    setCourse(event.target.value);
+                                    setPage(1);
 
-                        <option value="">
-                            All Status
-                        </option>
+                                }}
+                            >
 
-                        <option value="Active">
-                            Active
-                        </option>
+                                <option value="">
+                                    All Courses
+                                </option>
 
-                        <option value="Completed">
-                            Completed
-                        </option>
+                                <option value="React">
+                                    React
+                                </option>
 
-                        <option value="Dropped">
-                            Dropped
-                        </option>
+                                <option value="Node">
+                                    Node
+                                </option>
 
-                    </select>
+                                <option value="Java">
+                                    Java
+                                </option>
+
+                                <option value="Python">
+                                    Python
+                                </option>
+
+                            </select>
+
+                        </div>
 
 
-                    {/* Sort */}
+                        {/* Status */}
 
-                    <select
-                        value={sort}
-                        onChange={(event) => {
+                        <div className="col-md-3">
 
-                            setSort(
-                                event.target.value
-                            );
+                            <label className="form-label">
+                                Status
+                            </label>
 
-                            setPage(1);
+                            <select
+                                className="form-select"
+                                value={status}
+                                onChange={(event) => {
 
-                        }}
-                    >
+                                    setStatus(event.target.value);
+                                    setPage(1);
 
-                        <option value="">
-                            Sort By
-                        </option>
+                                }}
+                            >
 
-                        <option value="name">
-                            Name
-                        </option>
+                                <option value="">
+                                    All Status
+                                </option>
 
-                        <option value="enrollmentDate">
-                            Enrollment Date
-                        </option>
+                                <option value="Active">
+                                    Active
+                                </option>
 
-                    </select>
+                                <option value="Completed">
+                                    Completed
+                                </option>
+
+                                <option value="Dropped">
+                                    Dropped
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        {/* Sorting */}
+
+                        <div className="col-md-3">
+
+                            <label className="form-label">
+                                Sort By
+                            </label>
+
+                            <select
+                                className="form-select"
+                                value={sort}
+                                onChange={(event) => {
+
+                                    setSort(event.target.value);
+                                    setPage(1);
+
+                                }}
+                            >
+
+                                <option value="">
+                                    Default
+                                </option>
+
+                                <option value="name">
+                                    Name
+                                </option>
+
+                                <option value="enrollmentDate">
+                                    Enrollment Date
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -355,139 +399,125 @@ function Dashboard() {
 
             {/* Student Table */}
 
-            <div className="student-section">
+            <div className="card shadow-sm border-0">
 
-                <div className="student-header">
+                <div className="card-body">
 
-                    <h2>
-                        Students
-                    </h2>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
 
-                    <Link to="/add-student">
+                        <h5 className="fw-bold mb-0">
+                            Students
+                        </h5>
 
-                        <button>
-                            Add Student
-                        </button>
+                        <span className="text-muted">
+                            {students.length} records
+                        </span>
 
-                    </Link>
-
-                </div>
+                    </div>
 
 
-                {/* Loading */}
+                    {/* Loading */}
 
-                {loading && (
+                    {loading && (
 
-                    <p>
-                        Loading students...
-                    </p>
+                        <div className="text-center py-5">
 
-                )}
+                            <div
+                                className="spinner-border text-primary"
+                                role="status"
+                            >
+                            </div>
 
+                            <p className="mt-2 text-muted">
+                                Loading students...
+                            </p>
 
-                {/* Error */}
+                        </div>
 
-                {error && (
-
-                    <p>
-                        {error}
-                    </p>
-
-                )}
-
-
-                {/* Table */}
-
-                {!loading && !error && (
-
-                    <>
-
-                        <table>
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>
-                                        Name
-                                    </th>
-
-                                    <th>
-                                        Email
-                                    </th>
-
-                                    <th>
-                                        Phone
-                                    </th>
-
-                                    <th>
-                                        Course
-                                    </th>
-
-                                    <th>
-                                        Enrollment Date
-                                    </th>
-
-                                    <th>
-                                        Status
-                                    </th>
-
-                                    <th>
-                                        Actions
-                                    </th>
-
-                                </tr>
-
-                            </thead>
+                    )}
 
 
-                            <tbody>
+                    {/* Error */}
 
-                                {students.length === 0 ? (
+                    {!loading && error && (
+
+                        <div className="alert alert-danger">
+
+                            {error}
+
+                        </div>
+
+                    )}
+
+
+                    {/* Table */}
+
+                    {!loading && !error && (
+
+                        <div className="table-responsive">
+
+                            <table className="table table-hover align-middle">
+
+                                <thead className="table-light">
 
                                     <tr>
 
-                                        <td
-                                            colSpan="7"
-                                        >
-                                            No students found
-                                        </td>
+                                        <th>Name</th>
+
+                                        <th>Email</th>
+
+                                        <th>Phone</th>
+
+                                        <th>Course</th>
+
+                                        <th>Enrollment Date</th>
+
+                                        <th>Status</th>
+
+                                        <th>Actions</th>
 
                                     </tr>
 
-                                ) : (
+                                </thead>
 
-                                    students.map(
-                                        (student) => (
 
-                                            <tr
-                                                key={
-                                                    student._id
-                                                }
+                                <tbody>
+
+                                    {students.length === 0 ? (
+
+                                        <tr>
+
+                                            <td
+                                                colSpan="7"
+                                                className="text-center py-5 text-muted"
                                             >
 
-                                                <td>
-                                                    {
-                                                        student.name
-                                                    }
+                                                No students found.
+
+                                            </td>
+
+                                        </tr>
+
+                                    ) : (
+
+                                        students.map((student) => (
+
+                                            <tr key={student._id}>
+
+                                                <td className="fw-semibold">
+                                                    {student.name}
                                                 </td>
 
                                                 <td>
-                                                    {
-                                                        student.email
-                                                    }
+                                                    {student.email}
                                                 </td>
 
                                                 <td>
-                                                    {
-                                                        student.phone
-                                                    }
+                                                    {student.phone}
                                                 </td>
 
                                                 <td>
-                                                    {
-                                                        student.course
-                                                    }
+                                                    {student.course}
                                                 </td>
 
                                                 <td>
@@ -499,98 +529,107 @@ function Dashboard() {
                                                 </td>
 
                                                 <td>
-                                                    {
-                                                        student.status
-                                                    }
+
+                                                    <span
+                                                        className={`badge ${
+                                                            student.status === "Active"
+                                                                ? "text-bg-success"
+                                                                : student.status === "Completed"
+                                                                ? "text-bg-primary"
+                                                                : "text-bg-danger"
+                                                        }`}
+                                                    >
+
+                                                        {student.status}
+
+                                                    </span>
+
                                                 </td>
 
                                                 <td>
 
-                                                    <Link
-                                                        to={`/edit-student/${student._id}`}
-                                                    >
+                                                    <div className="d-flex gap-2">
 
-                                                        <button>
+                                                        <Link
+                                                            to={`/edit-student/${student._id}`}
+                                                            className="btn btn-sm btn-outline-primary"
+                                                        >
                                                             Edit
+                                                        </Link>
+
+                                                        <button
+                                                            className="btn btn-sm btn-outline-danger"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    student._id
+                                                                )
+                                                            }
+                                                        >
+                                                            Delete
                                                         </button>
 
-                                                    </Link>
-
-
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                student._id
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                    </div>
 
                                                 </td>
 
                                             </tr>
 
-                                        )
-                                    )
+                                        ))
 
-                                )}
+                                    )}
 
-                            </tbody>
+                                </tbody>
 
-                        </table>
+                            </table>
+
+                        </div>
+
+                    )}
 
 
-                        {/* Pagination */}
+                    {/* Pagination */}
 
-                        <div className="pagination">
+                    {!loading && !error && students.length > 0 && (
+
+                        <div className="d-flex justify-content-between align-items-center mt-3">
 
                             <button
-                                disabled={
-                                    page === 1 ||
-                                    loading
-                                }
+                                className="btn btn-outline-secondary"
+                                disabled={page === 1}
                                 onClick={() =>
-                                    setPage(
-                                        page - 1
-                                    )
+                                    setPage(page - 1)
                                 }
                             >
-                                Previous
+                                ← Previous
                             </button>
 
 
-                            <span>
+                            <span className="fw-semibold">
                                 Page {page} of {totalPages}
                             </span>
 
 
                             <button
-                                disabled={
-                                    page === totalPages ||
-                                    loading
-                                }
+                                className="btn btn-outline-secondary"
+                                disabled={page === totalPages}
                                 onClick={() =>
-                                    setPage(
-                                        page + 1
-                                    )
+                                    setPage(page + 1)
                                 }
                             >
-                                Next
+                                Next →
                             </button>
 
                         </div>
 
-                    </>
+                    )}
 
-                )}
+                </div>
 
             </div>
 
         </div>
 
     );
-
 }
 
 export default Dashboard;
