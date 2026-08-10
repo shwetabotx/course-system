@@ -5,7 +5,11 @@ const studentSchema = new mongoose.Schema(
         name: {
             type: String,
             required: [true, "Name is required"],
-            trim: true
+            trim: true,
+            match: [
+                /^[A-Za-z ]+$/,
+                "Name should contain only alphabets and spaces"
+            ]
         },
 
         email: {
@@ -13,7 +17,11 @@ const studentSchema = new mongoose.Schema(
             required: [true, "Email is required"],
             unique: true,
             trim: true,
-            lowercase: true
+            lowercase: true,
+            match: [
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                "Please enter a valid email address"
+            ]
         },
 
         phone: {
