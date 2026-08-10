@@ -8,32 +8,33 @@ import {
 
 function Dashboard() {
 
+    // Students
     const [students, setStudents] = useState([]);
 
+    // Search and filters
     const [search, setSearch] = useState("");
-
     const [course, setCourse] = useState("");
-
     const [status, setStatus] = useState("");
-
-    const [loading, setLoading] = useState(true);
-
-    const [error, setError] = useState("");
-
     const [sort, setSort] = useState("");
 
-    useEffect(() => {
+    // Loading and error
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-        const timer = setTimeout(() => {
-            loadStudents();
-        }, 500);
+    // Pagination
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
-        return () => {
-            clearTimeout(timer);
-        };
+    // Dashboard statistics
+    const [stats, setStats] = useState({
+        total: 0,
+        active: 0,
+        completed: 0,
+        dropped: 0
+    });
 
-    }, [search, course, status, sort]);
 
+    // Load students
     const loadStudents = async () => {
 
         try {
@@ -44,20 +45,33 @@ function Dashboard() {
             const response = await getStudents({
 
                 search: search,
-
                 course: course,
-
                 status: status,
 
-                page: 1,
-
+                page: page,
                 limit: 5,
 
                 sort: sort
 
             });
 
+            // Students for current page
             setStudents(response.data.data);
+
+            // Overall dashboard statistics
+            setStats(
+                response.data.stats || {
+                    total: 0,
+                    active: 0,
+                    completed: 0,
+                    dropped: 0
+                }
+            );
+
+            // Pagination
+            setTotalPages(
+                response.data.pagination?.totalPages || 1
+            );
 
         } catch (error) {
 
@@ -76,6 +90,26 @@ function Dashboard() {
 
     };
 
+
+    // Search, filters, sorting and pagination
+    useEffect(() => {
+
+        const timer = setTimeout(() => {
+
+            loadStudents();
+
+        }, 500);
+
+        return () => {
+
+            clearTimeout(timer);
+
+        };
+
+    }, [search, course, status, sort, page]);
+
+
+    // Delete student
     const handleDelete = async (id) => {
 
         const confirmed = window.confirm(
@@ -83,14 +117,26 @@ function Dashboard() {
         );
 
         if (!confirmed) {
+
             return;
+
         }
 
         try {
 
             await deleteStudent(id);
 
-            loadStudents();
+            // If deleting the last student on a page,
+            // move back to the previous page.
+            if (students.length === 1 && page > 1) {
+
+                setPage(page - 1);
+
+            } else {
+
+                loadStudents();
+
+            }
 
         } catch (error) {
 
@@ -105,19 +151,6 @@ function Dashboard() {
 
     };
 
-    const totalStudents = students.length;
-
-    const activeStudents = students.filter(
-        (student) => student.status === "Active"
-    ).length;
-
-    const completedStudents = students.filter(
-        (student) => student.status === "Completed"
-    ).length;
-
-    const droppedStudents = students.filter(
-        (student) => student.status === "Dropped"
-    ).length;
 
     return (
 
@@ -126,6 +159,7 @@ function Dashboard() {
             <h1>
                 Student Course Enrollment System
             </h1>
+
 
             {/* Dashboard Cards */}
 
@@ -138,10 +172,11 @@ function Dashboard() {
                     </h3>
 
                     <p>
-                        {totalStudents}
+                        {stats.total}
                     </p>
 
                 </div>
+
 
                 <div className="card">
 
@@ -150,10 +185,11 @@ function Dashboard() {
                     </h3>
 
                     <p>
-                        {activeStudents}
+                        {stats.active}
                     </p>
 
                 </div>
+
 
                 <div className="card">
 
@@ -162,10 +198,11 @@ function Dashboard() {
                     </h3>
 
                     <p>
-                        {completedStudents}
+                        {stats.completed}
                     </p>
 
                 </div>
+
 
                 <div className="card">
 
@@ -174,12 +211,13 @@ function Dashboard() {
                     </h3>
 
                     <p>
-                        {droppedStudents}
+                        {stats.dropped}
                     </p>
 
                 </div>
 
             </div>
+
 
             {/* Search and Filters */}
 
@@ -197,18 +235,31 @@ function Dashboard() {
                         type="text"
                         placeholder="Search by name or email"
                         value={search}
-                        onChange={(event) =>
-                            setSearch(event.target.value)
-                        }
+                        onChange={(event) => {
+
+                            setSearch(
+                                event.target.value
+                            );
+
+                            setPage(1);
+
+                        }}
                     />
+
 
                     {/* Course */}
 
                     <select
                         value={course}
-                        onChange={(event) =>
-                            setCourse(event.target.value)
-                        }
+                        onChange={(event) => {
+
+                            setCourse(
+                                event.target.value
+                            );
+
+                            setPage(1);
+
+                        }}
                     >
 
                         <option value="">
@@ -233,13 +284,20 @@ function Dashboard() {
 
                     </select>
 
+
                     {/* Status */}
 
                     <select
                         value={status}
-                        onChange={(event) =>
-                            setStatus(event.target.value)
-                        }
+                        onChange={(event) => {
+
+                            setStatus(
+                                event.target.value
+                            );
+
+                            setPage(1);
+
+                        }}
                     >
 
                         <option value="">
@@ -259,13 +317,23 @@ function Dashboard() {
                         </option>
 
                     </select>
-                    
+
+
+                    {/* Sort */}
+
                     <select
                         value={sort}
-                        onChange={(event) =>
-                            setSort(event.target.value)
-                        }
+                        onChange={(event) => {
+
+                            setSort(
+                                event.target.value
+                            );
+
+                            setPage(1);
+
+                        }}
                     >
+
                         <option value="">
                             Sort By
                         </option>
@@ -277,11 +345,13 @@ function Dashboard() {
                         <option value="enrollmentDate">
                             Enrollment Date
                         </option>
+
                     </select>
 
                 </div>
 
             </div>
+
 
             {/* Student Table */}
 
@@ -303,135 +373,215 @@ function Dashboard() {
 
                 </div>
 
+
+                {/* Loading */}
+
                 {loading && (
+
                     <p>
                         Loading students...
                     </p>
+
                 )}
 
+
+                {/* Error */}
+
                 {error && (
+
                     <p>
                         {error}
                     </p>
+
                 )}
+
+
+                {/* Table */}
 
                 {!loading && !error && (
 
-                    <table>
+                    <>
 
-                        <thead>
+                        <table>
 
-                            <tr>
-
-                                <th>
-                                    Name
-                                </th>
-
-                                <th>
-                                    Email
-                                </th>
-
-                                <th>
-                                    Phone
-                                </th>
-
-                                <th>
-                                    Course
-                                </th>
-
-                                <th>
-                                    Enrollment Date
-                                </th>
-
-                                <th>
-                                    Status
-                                </th>
-
-                                <th>
-                                    Actions
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            {students.length === 0 ? (
+                            <thead>
 
                                 <tr>
 
-                                    <td colSpan="7">
-                                        No students found
-                                    </td>
+                                    <th>
+                                        Name
+                                    </th>
+
+                                    <th>
+                                        Email
+                                    </th>
+
+                                    <th>
+                                        Phone
+                                    </th>
+
+                                    <th>
+                                        Course
+                                    </th>
+
+                                    <th>
+                                        Enrollment Date
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        Actions
+                                    </th>
 
                                 </tr>
 
-                            ) : (
+                            </thead>
 
-                                students.map((student) => (
 
-                                    <tr key={student._id}>
+                            <tbody>
 
-                                        <td>
-                                            {student.name}
-                                        </td>
+                                {students.length === 0 ? (
 
-                                        <td>
-                                            {student.email}
-                                        </td>
+                                    <tr>
 
-                                        <td>
-                                            {student.phone}
-                                        </td>
-
-                                        <td>
-                                            {student.course}
-                                        </td>
-
-                                        <td>
-                                            {new Date(
-                                                student.enrollmentDate
-                                            ).toLocaleDateString()}
-                                        </td>
-
-                                        <td>
-                                            {student.status}
-                                        </td>
-
-                                        <td>
-
-                                            <Link
-                                                to={`/edit-student/${student._id}`}
-                                            >
-
-                                                <button>
-                                                    Edit
-                                                </button>
-
-                                            </Link>
-
-                                            <button
-                                                onClick={() =>
-                                                    handleDelete(
-                                                        student._id
-                                                    )
-                                                }
-                                            >
-                                                Delete
-                                            </button>
-
+                                        <td
+                                            colSpan="7"
+                                        >
+                                            No students found
                                         </td>
 
                                     </tr>
 
-                                ))
+                                ) : (
 
-                            )}
+                                    students.map(
+                                        (student) => (
 
-                        </tbody>
+                                            <tr
+                                                key={
+                                                    student._id
+                                                }
+                                            >
 
-                    </table>
+                                                <td>
+                                                    {
+                                                        student.name
+                                                    }
+                                                </td>
+
+                                                <td>
+                                                    {
+                                                        student.email
+                                                    }
+                                                </td>
+
+                                                <td>
+                                                    {
+                                                        student.phone
+                                                    }
+                                                </td>
+
+                                                <td>
+                                                    {
+                                                        student.course
+                                                    }
+                                                </td>
+
+                                                <td>
+
+                                                    {new Date(
+                                                        student.enrollmentDate
+                                                    ).toLocaleDateString()}
+
+                                                </td>
+
+                                                <td>
+                                                    {
+                                                        student.status
+                                                    }
+                                                </td>
+
+                                                <td>
+
+                                                    <Link
+                                                        to={`/edit-student/${student._id}`}
+                                                    >
+
+                                                        <button>
+                                                            Edit
+                                                        </button>
+
+                                                    </Link>
+
+
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                student._id
+                                                            )
+                                                        }
+                                                    >
+                                                        Delete
+                                                    </button>
+
+                                                </td>
+
+                                            </tr>
+
+                                        )
+                                    )
+
+                                )}
+
+                            </tbody>
+
+                        </table>
+
+
+                        {/* Pagination */}
+
+                        <div className="pagination">
+
+                            <button
+                                disabled={
+                                    page === 1 ||
+                                    loading
+                                }
+                                onClick={() =>
+                                    setPage(
+                                        page - 1
+                                    )
+                                }
+                            >
+                                Previous
+                            </button>
+
+
+                            <span>
+                                Page {page} of {totalPages}
+                            </span>
+
+
+                            <button
+                                disabled={
+                                    page === totalPages ||
+                                    loading
+                                }
+                                onClick={() =>
+                                    setPage(
+                                        page + 1
+                                    )
+                                }
+                            >
+                                Next
+                            </button>
+
+                        </div>
+
+                    </>
 
                 )}
 
