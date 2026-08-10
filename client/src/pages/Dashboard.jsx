@@ -1,5 +1,53 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getStudents } from "../services/studentService";
+
 function Dashboard() {
+
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        loadStudents();
+    }, []);
+
+    const loadStudents = async () => {
+
+        try {
+
+            const response = await getStudents();
+
+            setStudents(response.data.data);
+
+        } catch (error) {
+
+            console.error(error);
+
+            setError("Failed to load students.");
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+    const totalStudents = students.length;
+
+    const activeStudents = students.filter(
+        (student) => student.status === "Active"
+    ).length;
+
+    const completedStudents = students.filter(
+        (student) => student.status === "Completed"
+    ).length;
+
+    const droppedStudents = students.filter(
+        (student) => student.status === "Dropped"
+    ).length;
+
     return (
         <div className="container">
 
@@ -11,22 +59,22 @@ function Dashboard() {
 
                 <div className="card">
                     <h3>Total Students</h3>
-                    <p>0</p>
+                    <p>{totalStudents}</p>
                 </div>
 
                 <div className="card">
                     <h3>Active Students</h3>
-                    <p>0</p>
+                    <p>{activeStudents}</p>
                 </div>
 
                 <div className="card">
                     <h3>Completed</h3>
-                    <p>0</p>
+                    <p>{completedStudents}</p>
                 </div>
 
                 <div className="card">
                     <h3>Dropped</h3>
-                    <p>0</p>
+                    <p>{droppedStudents}</p>
                 </div>
 
             </div>
@@ -47,37 +95,106 @@ function Dashboard() {
 
                 </div>
 
-                <table>
+                {loading && (
+                    <p>Loading students...</p>
+                )}
 
-                    <thead>
+                {error && (
+                    <p>{error}</p>
+                )}
 
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Course</th>
-                            <th>Enrollment Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
+                {!loading && !error && (
 
-                    </thead>
+                    <table>
 
-                    <tbody>
+                        <thead>
 
-                        <tr>
-                            <td colSpan="7">
-                                No students found
-                            </td>
-                        </tr>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Course</th>
+                                <th>Enrollment Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
 
-                    </tbody>
+                        </thead>
 
-                </table>
+                        <tbody>
+
+                            {students.length === 0 ? (
+
+                                <tr>
+                                    <td colSpan="7">
+                                        No students found
+                                    </td>
+                                </tr>
+
+                            ) : (
+
+                                students.map((student) => (
+
+                                    <tr key={student._id}>
+
+                                        <td>
+                                            {student.name}
+                                        </td>
+
+                                        <td>
+                                            {student.email}
+                                        </td>
+
+                                        <td>
+                                            {student.phone}
+                                        </td>
+
+                                        <td>
+                                            {student.course}
+                                        </td>
+
+                                        <td>
+                                            {new Date(
+                                                student.enrollmentDate
+                                            ).toLocaleDateString()}
+                                        </td>
+
+                                        <td>
+                                            {student.status}
+                                        </td>
+
+                                        <td>
+
+                                            <Link
+                                                to={`/edit-student/${student._id}`}
+                                            >
+                                                <button>
+                                                    Edit
+                                                </button>
+                                            </Link>
+
+                                            <button>
+                                                Delete
+                                            </button>
+
+                                        </td>
+
+                                    </tr>
+
+                                ))
+
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                )}
 
             </div>
 
         </div>
     );
 }
+
 export default Dashboard;
