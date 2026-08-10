@@ -5,6 +5,7 @@ import AddStudent from "./pages/AddStudent";
 import EditStudent from "./pages/EditStudent";
 import NotFound from "./pages/NotFound";
 
+
 function App() {
     return (
         <BrowserRouter>
