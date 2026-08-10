@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStudents } from "../services/studentService";
+import {
+    getStudents,
+    deleteStudent
+} from "../services/studentService";
 
 function Dashboard() {
 
@@ -32,6 +35,39 @@ function Dashboard() {
 
         }
 
+    };
+
+    const handleDelete = async (id) => {
+
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this student?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+
+            await deleteStudent(id);
+
+            // Remove deleted student from the current table
+            setStudents((currentStudents) =>
+                currentStudents.filter(
+                    (student) => student._id !== id
+                )
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            setError(
+                error.response?.data?.message ||
+                "Failed to delete student."
+            );
+
+        }
     };
 
     const totalStudents = students.length;
@@ -173,7 +209,9 @@ function Dashboard() {
                                                 </button>
                                             </Link>
 
-                                            <button>
+                                            <button
+                                                onClick={() => handleDelete(student._id)}
+                                            >
                                                 Delete
                                             </button>
 
