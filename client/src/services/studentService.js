@@ -4,8 +4,10 @@ const API = axios.create({
     baseURL: "http://localhost:5000/api"
 });
 
-export const getStudents = () => {
-    return API.get("/students");
+export const getStudents = (params = {}) => {
+    return API.get("/students", {
+        params
+    });
 };
 
 export const getStudentById = (id) => {

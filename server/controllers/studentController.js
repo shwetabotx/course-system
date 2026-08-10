@@ -64,14 +64,69 @@ const createStudent = async (req, res) => {
 
 };
 
-
 // Get All Students
 
 const getStudents = async (req, res) => {
 
     try {
 
-        const students = await Student.find();
+        const {
+            search,
+            course,
+            status,
+            sort
+        } = req.query;
+
+        const filter = {};
+
+        // Search by Name or Email
+        if (search) {
+
+            filter.$or = [
+                {
+                    name: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    email: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
+            ];
+
+        }
+
+        // Course Filter
+        if (course) {
+            filter.course = course;
+        }
+
+        // Status Filter
+        if (status) {
+            filter.status = status;
+        }
+
+        // Sorting
+        let sortOption = {};
+
+        if (sort === "name") {
+            sortOption = {
+                name: 1
+            };
+        }
+
+        if (sort === "enrollmentDate") {
+            sortOption = {
+                enrollmentDate: -1
+            };
+        }
+
+        const students = await Student
+            .find(filter)
+            .sort(sortOption);
 
         res.status(200).json({
             success: true,
@@ -147,7 +202,7 @@ const updateStudent = async (req, res) => {
 
         }
 
-        // Update only editable fields
+
 
         if (name !== undefined) {
             student.name = name;
@@ -189,6 +244,7 @@ const updateStudent = async (req, res) => {
             });
 
         }
+
 
         res.status(400).json({
             success: false,
